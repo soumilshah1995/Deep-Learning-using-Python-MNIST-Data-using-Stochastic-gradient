@@ -5,4 +5,4 @@ The Dense Neural Network was Created using Python after Different analysis resul
 we Observed that as as Learning Rate increases Accuracy Increases, and loss decreases, and time increases and 
 As Neuron increases loss increases and Accuracy decreases and time increases even when learning rate increases
 
-<img width="637" alt="image" src="https://user-images.githubusercontent.com/39345855/53618994-ac785080-3bbb-11e9-8e26-be9f145deec4.png">
+<img width="965" alt="image" src="https://user-images.githubusercontent.com/39345855/53673541-2f4de980-3c56-11e9-9529-2042eea00ab5.png">
