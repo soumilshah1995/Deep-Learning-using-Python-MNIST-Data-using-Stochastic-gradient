@@ -1,4 +1,5 @@
 '''
+Using Sigmoid Derivative Function in both layers
 
 Thanking you,
 Soumil Nitin Shah
@@ -27,7 +28,7 @@ https://www.youtube.com/channel/UC_eOodxvwS_H7x2uLQa-svw
 
 '''
 try:
-                                                            # Import library
+    # Import library
     import os
     import sys
     import cv2
@@ -79,9 +80,9 @@ testX = test.reshape(test.shape[0], test.shape[1] * test.shape[2], 1)
 
 # ---------------------------------  Neural Network ---------------------------------------
 
-numNeuronsLayer1 = 100              # Number of Neuron in Layer 1
+numNeuronsLayer1 = 200              # Number of Neuron in Layer 1
 numNeuronsLayer2 = 10               # Output Neuron
-numEpochs = 50                      # number of Epoch
+numEpochs = 30                      # number of Epoch
 learningRate = 0.1                  # define Learning Rate
 
 # Define Weight Matrix Randomly
@@ -90,6 +91,8 @@ b1 = np.random.uniform(low=-1,   high= 1,   size=(numNeuronsLayer1, 1))
 w2 = np.random.uniform(low=-0.1, high=0.1, size=(numNeuronsLayer2, numNeuronsLayer1))
 b2 = np.random.uniform(low=-0.1, high=0.1, size=(numNeuronsLayer2, 1))
 
+zero_out = np.random.binomial(n=1, p=0.8, size=(numNeuronsLayer1, 1)) / 0.8
+
 for n in range(0, numEpochs):
 
     loss = 0
@@ -97,11 +100,12 @@ for n in range(0, numEpochs):
 
     for i in range(trainX.shape[0]):
 
-        s1 = np.dot(w1,trainX[i]) + b1                          # S1 = W.X + B
-        a1 = 1 / (1 + np.exp(-1 * s1))                          # A1 = 1 / 1 + EXP(-S1)
+        s1 = np.dot(w1, trainX[i]) + b1                         # S1 = W.X + B
+        a1 = 1 / (1 + np.exp(-1 * s1))                          # A1 = 1 / 1 + EXP(-1 * S1)
+        a1 = np.multiply(zero_out, a1)                          # A1 = A1 * Zero Out
 
         s2 = np.dot(w2, a1) + b2                                # S2 = A1.W2 + B2
-        a2 = 1 / (1 + np.exp(-1 * s2))
+        a2 = 1 / (1 + np.exp(-1 * s2))                          # A2 = 1 / (1 + EXP(-1* S2 ))
 
         loss += (0.5 * ((a2-trainY[i])*(a2-trainY[i]))).sum()   # L = 0.5.(y - a) ^^ 2
 
@@ -109,14 +113,19 @@ for n in range(0, numEpochs):
 
         error = -1 * (trainY[i] - a2)                           # E = - (Y - A2)
         a2_act = np.multiply(a2, (1 - a2))                      # A2_act = A2.(1-A2)
-        delta2 = np.multiply(error, a2)                         # Delta2 = - (Y - A2)
+        delta2 = np.multiply(error, a2_act)                     # Delta2 = - (Y - A2)
 
-        a1_act = np.multiply(a1,(1 - a1))                       # A1 = A1.(1 - A1)
+        a1_act = np.multiply(a1, (1 - a1))                      # A1_ACT = A1.(1 - A1)
+        a1_act = np.multiply(zero_out, a1_act)                   # A1_ACT = ZERO OUT * A1_ACT
         error_2 = np.dot(w2.T, delta2)                          # E_2 = Delta2 . W2
         delta1 = np.multiply(error_2, a1_act)                   # Delta1 = E_2 . A1
 
         gradw2 = np.dot(delta2, a1.T)                           # GradW2 = Delta2 . A1
+
         gradw1 = np.dot(delta1, trainX[i].T)                    # GradW1 = Delta1 . TrainX
+        # gradw1 = np.multiply(gradw1, zero_out)
+        # print(gradw1.shape)
+
         gradb2 = delta2                                         # GRADB2 = Delta2
         gradb1 = delta1                                         # GradB1 = Delta1
 

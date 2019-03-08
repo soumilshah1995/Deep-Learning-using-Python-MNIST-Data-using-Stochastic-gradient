@@ -84,6 +84,8 @@ numNeuronsLayer1 = 200              # Number of Neuron in Layer 1
 numNeuronsLayer2 = 10               # Output Neuron
 numEpochs = 30                      # number of Epoch
 learningRate = 0.1                 # define Learning Rate
+zero_out = np.random.binomial(n=1, p=0.8, size=(numNeuronsLayer1, 1)) / 0.8
+
 
 # Define Weight Matrix Randomly
 w1 = np.random.uniform(low=-0.1, high=0.1, size=(numNeuronsLayer1, 784))
@@ -100,18 +102,21 @@ for n in range(0, numEpochs):
 
         s1 = np.dot(w1,trainX[i]) + b1                          # S1 = W.X + B
         a1 = 1 / (1 + np.exp(-1 * s1))                          # A1 = 1 / 1 + EXP(-S1)
+        a1 = np.multiply(a1,zero_out)
 
         s2 = np.dot(w2, a1) + b2                                # S2 = A1.W2 + B2
         a2 = np.exp(s2) / np.exp(s2).sum()                      # A2 = e(s2)/ e(s2).sum()
 
         loss = - np.sum(trainY[i] * np.log(a2))                 # Cross Entropy loss
-                                                                # L = - Y * log(A2)
+        # L = - Y * log(A2)
 
         # -------------------------------------- BACK Propogate --------------------------------------
 
         delta2 = a2 - trainY[i]                                 # Delta A2 - Y
 
-        a1_act = np.multiply(a1, (1 - a1))                       # A1 = A1.(1 - A1)
+        a1_act = np.multiply(a1, (1 - a1))                      # A1 = A1.(1 - A1)
+        a1_act = np.multiply(a1_act, zero_out)
+
         error_2 = np.dot(w2.T, delta2)                          # E_2 = Delta2 . W2
         delta1 = np.multiply(error_2, a1_act)                   # Delta1 = E_2 . A1
 

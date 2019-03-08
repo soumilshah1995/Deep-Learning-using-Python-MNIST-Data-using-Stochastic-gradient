@@ -1,5 +1,5 @@
 '''
-
+This Example shows Deep Dense Neural Network using  Softmax Activation
 Thanking you,
 Soumil Nitin Shah
 
@@ -27,7 +27,7 @@ https://www.youtube.com/channel/UC_eOodxvwS_H7x2uLQa-svw
 
 '''
 try:
-                                                            # Import library
+    # Import library
     import os
     import sys
     import cv2
@@ -39,6 +39,7 @@ try:
 
 except:
     print("Library not found ")
+
 
 
 now_time = datetime.datetime.now()                          # Create Time
@@ -81,14 +82,16 @@ testX = test.reshape(test.shape[0], test.shape[1] * test.shape[2], 1)
 
 numNeuronsLayer1 = 100              # Number of Neuron in Layer 1
 numNeuronsLayer2 = 10               # Output Neuron
-numEpochs = 50                      # number of Epoch
-learningRate = 0.1                  # define Learning Rate
+numEpochs = 30                      # number of Epoch
+learningRate = 0.1                 # define Learning Rate
+l2_reg = 0.0001
 
 # Define Weight Matrix Randomly
 w1 = np.random.uniform(low=-0.1, high=0.1, size=(numNeuronsLayer1, 784))
 b1 = np.random.uniform(low=-1,   high= 1,   size=(numNeuronsLayer1, 1))
 w2 = np.random.uniform(low=-0.1, high=0.1, size=(numNeuronsLayer2, numNeuronsLayer1))
 b2 = np.random.uniform(low=-0.1, high=0.1, size=(numNeuronsLayer2, 1))
+
 
 for n in range(0, numEpochs):
 
@@ -101,17 +104,18 @@ for n in range(0, numEpochs):
         a1 = 1 / (1 + np.exp(-1 * s1))                          # A1 = 1 / 1 + EXP(-S1)
 
         s2 = np.dot(w2, a1) + b2                                # S2 = A1.W2 + B2
-        a2 = 1 / (1 + np.exp(-1 * s2))
+        a2 = np.exp(s2) / np.exp(s2).sum()                      # A2 = e(s2)/ e(s2).sum()
 
-        loss += (0.5 * ((a2-trainY[i])*(a2-trainY[i]))).sum()   # L = 0.5.(y - a) ^^ 2
+        loss = - np.sum(np.multiply(trainY[i], np.log(a2)))                 # Cross Entropy loss
+        reg_cost = 0.5 * l2_reg * (np.sum(np.square(w1)) + np.sum(np.square(w2)))
+        loss = loss + reg_cost
 
         # -------------------------------------- BACK Propogate --------------------------------------
 
-        error = -1 * (trainY[i] - a2)                           # E = - (Y - A2)
-        a2_act = np.multiply(a2, (1 - a2))                      # A2_act = A2.(1-A2)
-        delta2 = np.multiply(error, a2)                         # Delta2 = - (Y - A2)
+        delta2 = a2 - trainY[i]                                 # Delta A2 - Y
 
-        a1_act = np.multiply(a1,(1 - a1))                       # A1 = A1.(1 - A1)
+        a1_act = np.multiply(a1, (1 - a1))                      # A1 = A1.(1 - A1)
+
         error_2 = np.dot(w2.T, delta2)                          # E_2 = Delta2 . W2
         delta1 = np.multiply(error_2, a1_act)                   # Delta1 = E_2 . A1
 
@@ -120,10 +124,10 @@ for n in range(0, numEpochs):
         gradb2 = delta2                                         # GRADB2 = Delta2
         gradb1 = delta1                                         # GradB1 = Delta1
 
-        w2 = w2 - learningRate * gradw2                         # W = W - learning rate . Grad
+        w2 = w2 - learningRate * gradw2 - learningRate * l2_reg * w2
         b2 = b2 - learningRate * gradb2                         # B = B - learning rate . Grad
 
-        w1 = w1 - learningRate * gradw1                         # W = W - learning rate . Grad
+        w1 = w1 - learningRate * gradw1  - learningRate * l2_reg * w1
         b1 = b1 - learningRate * gradb1                         # B = B - learning rate . Grad
 
     x_data_epoch.append(n)
@@ -134,13 +138,17 @@ for n in range(0, numEpochs):
 print("done training , starting testing..")
 accuracyCount = 0
 
+# ------------------------------ Test Data -----------------------------------------------
+
+
 for i in range(testY.shape[0]):
 
     s1 = np.dot(w1, testX[i]) + b1                      # S1 = W1.X + B1
     a1 = 1/(1+np.exp(-1*s1))                            # A1 = 1/ 1+ EXP(S1)
 
     s2 = np.dot(w2,a1) + b2                             # S2 = A1.W2 + B2
-    a2 = 1/(1+np.exp(-1*s2))                            # A2 = 1/ 1+ EXP(S2)
+
+    a2 = np.exp(s2) / np.exp(s2).sum()                  # A2 = E(S2) / E(S2).sum()
 
     a2index = a2.argmax(axis=0)                         # Select Max from 10 Neuron
 
